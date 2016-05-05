@@ -119,7 +119,7 @@ class t_gitshelve(unittest.TestCase):
         keys = shelf.keys()
         keys.sort()
         for path in keys:
-            buf.write("path: (%s)\n" % path)
+            buf.write("path: ({0!s})\n".format(path))
         self.assertEqual("""path: (alpha/beta/baz2.c)
 path: (apple/orange/baz3.c)
 path: (foo/bar/baz1.c)

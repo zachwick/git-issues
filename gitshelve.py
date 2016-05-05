@@ -67,10 +67,9 @@ class GitError(Exception):
 
     def __unicode__(self):
         if self.stderr:
-            return u"Git command failed: git %s %s: %s" % \
-                (self.cmd, self.args, self.stderr)
+            return u"Git command failed: git {0!s} {1!s}: {2!s}".format(self.cmd, self.args, self.stderr)
         else:
-            return u"Git command failed: git %s %s" % (self.cmd, self.args)
+            return u"Git command failed: git {0!s} {1!s}".format(self.cmd, self.args)
 
 
 def git(cmd, *args, **kwargs):
@@ -81,7 +80,7 @@ def git(cmd, *args, **kwargs):
             stdin_mode = PIPE
 
         if verbose:
-            print "Command: git %s %s" % (cmd, join(args, ' '))
+            print "Command: git {0!s} {1!s}".format(cmd, join(args, ' '))
             if 'input' in kwargs:
                 print "Input: <<EOF"
                 print kwargs['input'],
@@ -149,8 +148,7 @@ class gitbook:
         self.dirty = False
 
     def __repr__(self):
-        return '<gitshelve.gitbook %s %s %s>' % \
-                (self.path, self.name, self.dirty)
+        return '<gitshelve.gitbook {0!s} {1!s} {2!s}>'.format(self.path, self.name, self.dirty)
 
     def get_data(self):
         if self.data is None:
@@ -220,15 +218,15 @@ class gitshelve(dict):
     def current_head(self):
         x = self.git('rev-parse', self.branch)
         if len(x) != 40:
-            raise ValueError("rev-parse went insane: %s" % x)
+            raise ValueError("rev-parse went insane: {0!s}".format(x))
         return x
 
     def update_head(self, new_head):
         if self.head:
-            self.git('update-ref', 'refs/heads/%s' % self.branch, new_head,
+            self.git('update-ref', 'refs/heads/{0!s}'.format(self.branch), new_head,
                      self.head)
         else:
-            self.git('update-ref', 'refs/heads/%s' % self.branch, new_head)
+            self.git('update-ref', 'refs/heads/{0!s}'.format(self.branch), new_head)
         self.head = new_head
 
     def read_repository(self):
@@ -266,15 +264,13 @@ class gitshelve(dict):
                     d['__root__'] = name
                 else:
                     raise GitError('read_repository', [], {},
-                           'Invalid mode for %s : 040000 required, %s found' \
-                                   % (path, perm))
+                           'Invalid mode for {0!s} : 040000 required, {1!s} found'.format(path, perm))
             else:
                 if perm == '100644':
                     d['__book__'] = self.book_type(self, path, name)
                 else:
                     raise GitError('read_repository', [], {},
-                           'Invalid mode for %s : 100644 required, %s found' \
-                                % (path, perm))
+                           'Invalid mode for {0!s} : 100644 required, {1!s} found'.format(path, perm))
 
     def open(cls, branch='master', repository=None,
              keep_history=True, book_type=gitbook):
@@ -319,7 +315,7 @@ class gitshelve(dict):
                     book.dirty = False
                     root = None
 
-                buf.write("100644 blob %s\t%s\0" % (book.name, path))
+                buf.write("100644 blob {0!s}\t{1!s}\0".format(book.name, path))
 
             else:
                 tree_root = None
@@ -330,7 +326,7 @@ class gitshelve(dict):
                 if tree_name != tree_root:
                     root = None
 
-                buf.write("040000 tree %s\t%s\0" % (tree_name, path))
+                buf.write("040000 tree {0!s}\t{1!s}\0".format(tree_name, path))
 
         if root is None:
             name = self.git('mktree', '-z', input=buf.getvalue())
@@ -386,7 +382,7 @@ class gitshelve(dict):
             objects = self.objects
 
         if ('__root__' in objects) and indent == 0:
-            fd.write('%stree %s\n' % (" " * indent, objects['__root__']))
+            fd.write('{0!s}tree {1!s}\n'.format(" " * indent, objects['__root__']))
             indent += 2
 
         keys = objects.keys()
@@ -408,7 +404,7 @@ class gitshelve(dict):
                 else:
                     kind = 'tree'
 
-            fd.write('%s%s: %s\n' % (" " * indent, kind, key))
+            fd.write('{0!s}{1!s}: {2!s}\n'.format(" " * indent, kind, key))
 
             if kind[:4] == 'tree':
                 self.dump_objects(fd, indent + 2, objects[key])
@@ -423,7 +419,7 @@ class gitshelve(dict):
         return d
 
     def get(self, key):
-        path = '%s/%s' % (key[:2], key[2:])
+        path = '{0!s}/{1!s}'.format(key[:2], key[2:])
         d = None
         try:
             d = self.get_tree(path)
@@ -438,7 +434,7 @@ class gitshelve(dict):
         book.data = data
         book.name = self.make_blob(book.serialize_data(book.data))
         book.dirty = False      # the blob was just written!
-        book.path = '%s/%s' % (book.name[:2], book.name[2:])
+        book.path = '{0!s}/{1!s}'.format(book.name[:2], book.name[2:])
 
         d = self.get_tree(book.path, make_dirs=True)
         d.clear()
